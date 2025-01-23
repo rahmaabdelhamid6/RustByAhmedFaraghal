@@ -1,104 +1,120 @@
-// to run optimize cargo run --profile=release or cargo run --release/
-// rust mfihash null pointer w exceptions
-// when i need to use crate it must be added in cargo.toml you can put it manually or by cargo add crate name 
-// kol crates leha el features bta3tha elly btnzl beha feh enabeled defualt features w another feature you can enable elly gnbha - lma bagi a rurn cargo add cratename d btkun elly mch enabled
-// momkn akhtar enable full aw ahdd elly na 3awzaha bs cargo add -F full or featurename 
+// feh website esmu godbolt -> d disassembler btl3li el assembly code 
+//explicit better than implicit
+// fn pick (value:u8){
+//     if value% 2 == 0{
+//         true
+//     }else {
+//         false
+//     }
+// }
 
-//b intall b cargo install cargo-nameofwhatinedd (cargo install cargo-expand) , b search b cargo search searchname 
+// hna ma'drsh aktbo kda 3chan el lifteime bta3o at3mlo unwind mn el stack b3d el func scope m khls lw kan ay type ghir string 
+// lakn el &str bytktb f data seg elly maktub hardcoded b eidi f el code zy even aw odd  f el lifetime bta3o static 3omro mn 3omr el program kollo  f bhtolo lifetime annotation esmo static , d ghir el string elly byigi f el runtime f d dynamically allocated 
 
-// ka'ani b3ml el result enum
-#[derive(Debug)] 
-pub enum Status <S,E> //generics types bhdd el type elly 3awez ab3to lma bagi astkhdmo  
-{
-    Tamam(S),
-    MchTamam (E),   
+// fn pick (value:u32) -> &'static str {
+//     if value% 2 == 0{
+//         "even"
+//     }else {
+//         "odd"
+//     }
+// }
+
+// fn pick<T> (value:u32, even :T, odd: T) -> T {
+//     if value% 2 == 0{
+//         even
+//         // f el C++ lw grb aktb even+1 w get f el main b3t 100 , 200 bs mshtkhdmtsh ay type tni mch int hay3deha 3chan wa'at el call byruh yshel T w yhut bdalha 100 f hayba'a 3adi y +1 3leha f lw el code compiled tmm hat3di lw la haydini  error 
+//         // lakn f el rust mcha hay3diha 3chan d generic templatef btb'a 3awza thut validation rule 3la el template code abl m na a3mlo call f hya lazem tb'a correct abl m had ynadeha f fekeret ni ab3tlha str f mch valid +1 3leh f hayidini el error mn badri 
+//         // f lw habet ahut +1 f el rust lazem akun mdeh info 3n T takfi nu y3amlha k int
+//     }else {
+//         odd
+//     }
+// }
+
+//create trait generic over el return type like rand::random
+trait Random {
+    fn generate () ->Self;
 }
-pub trait Serialize{
-    fn serialize(&self);
-    fn length(&self) -> i32{
-        0
+impl Random for u8{
+    fn generate () -> Self{
+       55
+    }
+}
+impl Random for &str{
+    fn generate () -> Self{
+       "hola"
+    }
+}
+//set boundaries to describe T -> fn random <T: >() or fn random() where T : 
+fn random <T> () ->T 
+where T : Random, 
+{
+    T::generate()
+}
+fn pick_u8 (value:u8){
+    println!("you picked {}", value);
+}
+fn pick_str (value:&str){
+    println!("you picked {}", value);
+}
+//create generic on lifetime
+// lifetime annotation
+#[derive(Debug)]
+enum  Either<'a,'b> // el enum shayel ref mch l values bs 2 different lifetimes
+{
+    This(&'a str),
+    That(&'b str),
+}
+#[derive(Clone)]
+struct Employee{
+    name: String, 
+    age: u32,
+}
+
+fn get_name<'a> (employee_1: &'a Employee) -> &'a str{
+    &employee_1.name
+}
+fn who_is_older<'a, 'b>(employee_1: &'a Employee , employee_2: &'b Employee) -> Either<'a, 'b>{
+    if employee_1.age > employee_2.age{
+       Either::This((&employee_1.name)) 
+    }else {
+        Either::That((&employee_2.name))
     }
 }
 
-impl <S, E> Serialize for Status <S, E> // kda b genralize el trait l ay type -> pattern matching : value it will be checked on runtime 
-// ma3lomat el typecheck d compile time mch run time 
-// impl Serialize for Status <(), String> // hna bhddlha types mo3yana tshtghl m3aha 
-where  // ba'dar a3rf el type wl traits elly motaha leha w el implementors mn rust  std libaray website,  w feh goz' feha esmu blanket implemetation w d el safat elly trait byakhudha l ay T aw S b shroot aw mn ghir shroot mch ll trait nfsha 
-    S: std::fmt::Debug,  // kol el ma3loma elly mhtag a3rfha 3n S,E nha ay type w b y w thier implementation of debug trait 3lehum 
+// fn who_is_older<'a>(employee_1: &'a Employee , employee_2: &'a Employee) -> &'a str{
+//     if employee_1.age > employee_2.age{
+//         &employee_1.name
+//     }else {
+//         &employee_2.name
+//     }
+// }
+fn main (){
+    // let v = rand::random(); // random d generic 3la el return type bta3ha f el type inferance my3rfsh yhl hwa hayrg3 eh mn el line d bs f mhtag source tani y3rf el type eh f lma bnb3taha l pick btakhud nfs el type 
+    // f lw kan pick 3nd awl arg btakhud brdu generics kan haydini error 3chan mch 3aref ydeha type eh???
+    // println!("you picked {} , it's {}", v, pick(v));
+    // println!("you picked {} , it's {}", v, if pick(v){"even"}else {"odd"});
 
-    E: std::fmt::Debug,
-{
-    fn serialize(&self) {
-        // todo!(); // it do panic 
-        match self {
-            Status::Tamam(x) => println!("{:#?}", x),
-            Status::MchTamam(y) => println!("{:#?}", y),
-        }
-    }
+    // momkn a force d 3la type na 3amli b eni ahut ablo #[drive(Copy,Clone)] 3la el type elly 3mlto
+    let v = random(); //primitive types (built in types like u8,u32,etc) are cheaper to do this that send it as ref, they make copy instead of move 
+    pick_u8(v);
     
-}
-//rust have 2 types of macro declared macro look like function and proc macro #[]
-#[derive(Debug)] // #[internal macro] -> internal mace give ability to drive a group of builtin traits like Debug, Clone, drop ..etc
-pub struct  MemoryBudget{
-    remaining_bytes: usize, //usize change based on word size in the architecture -> usize::MAX lw grbt atb3o haydini akbr num
+    // println!("you picked it's {}", pick(v));
 
-}
-// self -> owned value
-// &self -> shared reference (borrow)
-// &mut self -> exclusive reference 
-//inmplement block on a type i made 
-impl MemoryBudget {
-    pub fn new(budget: usize) -> Self // momkn a return MemoryBudget== Self aw Result enum
-    {
-        Self{remaining_bytes: budget}
-    }
-    #[must_use]
-    pub fn decrement(&mut self, mem:usize) -> Status<(), String> {
-        if self.remaining_bytes < mem{
-            Status::MchTamam( "no memory left ".to_owned())
-        }else{
-            self.remaining_bytes -= mem;
-            Status::Tamam(())
-        } 
-    }
-    //consuming self -> take ownership 
-    // pub fn allocate(mut self , mem :usize){
-    //     self.remaining_bytes -= mem;
-    // }
-    pub fn remaining(&self) ->usize{
-        self.remaining_bytes
-    }
-    pub fn bye(self){
-        // drop fn get automatically awl m el object y get outof scope had yakhud el ownership bta3to masln y get consumed 
+    // println!("you picked {} , it's {}", v, pick(v, "even", "odd"));
+    // println!("you picked {} , it's {}", v, pick(v, true , false ));
+    // println!("you picked {} , it's {}", v, pick(v, 100, 200));
 
-    }
-}
-//orphan rule -> hwa ni implement public trait on public type lakn public train on my own type it's valid or make my own trait on my own types or my own trait on public type
-//implement trait fot type , lma bagi asmi trait afkr b it can aw could be debug masln aw display , etc w lma el trait bykun byakhud self d bydi power lli ha3mlo implementation w momkn el trait ykun leha body aw la 
-impl  Drop for MemoryBudget {
-    // bruh ll rust standard library w adwr 3la el trait elly 3awzaa implementaha w a3mlha 
-    //https://doc.rust-lang.org/std/ops/trait.Drop.html
-    fn drop(&mut self) {
-        println!("Dropping Memory Budget -{}", self.remaining_bytes)
-    }
-}
-// &mut -> exclusive reference
-// mut -> mutable binding el efferct bta3ha 3la el value elly f eidi 
-fn main() {
-    // let a: i32 = 5;
-    // println!("Hello, world! {}",  usize::MAX);
-    let  mut budget = MemoryBudget::new(1024);
-    // drop(budget); // consume el value f b3d el line d mhdsh hay3rf ustkhdm budget 3chan ka,nha btfree el memory aw destructor
-    // MemoryBudget::decrement(&mut budget, 512);
-    // MemoryBudget::allocate( budget, 512);
-    println!("A");
-    let status = budget.decrement(2000);
-    status.serialize();
-    println!("Status :{:#?}", status);
-    // println!("remaining memory:{:#?}", budget);
-    println!("B");
-    budget.bye();
-    // drop(budget);
-    println!("C");
+    let mahmoud = Employee{
+        name: "Mahmoud".to_string(),
+        age: 22
+    };
+    let name = get_name(&mahmoud);
+    println!("my name is {}", name);
 
+    let ahmed = Employee{
+        name: "ahmed".to_string(),
+        age: 20
+    };
+    // println!("the older is {}", who_is_older(&mahmoud, &ahmed));
+    println!("the older is {:?}", who_is_older(&mahmoud, &ahmed));
 }
