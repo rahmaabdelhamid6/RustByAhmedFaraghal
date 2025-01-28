@@ -135,4 +135,3 @@ impl <C:Currency> Add<Amount<C>> for Amount<C> // self here refer to that it mus
 //         }
 //     }
 // }
-
